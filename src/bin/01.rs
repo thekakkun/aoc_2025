@@ -1,6 +1,17 @@
 use std::fs::read_to_string;
 use std::ops::AddAssign;
-use std::str::FromStr;
+
+fn main() {
+    let input = read_to_string("input/01.txt").unwrap();
+
+    let rotation_iter = parse_input(&input);
+    let password_1 = part_1(rotation_iter);
+    println!("Part 1: {}", password_1);
+
+    let rotation_iter = parse_input(&input);
+    let password_2 = part_2(rotation_iter);
+    println!("Part 2: {}", password_2);
+}
 
 #[derive(Debug, Clone, Copy)]
 enum Rotation {
@@ -45,7 +56,7 @@ impl TryFrom<&str> for Rotation {
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         let (dir, rot_str) = value.trim().split_at(1);
-        let rot = u16::from_str(rot_str).map_err(|_| "Unable to parse rotation")?;
+        let rot = rot_str.parse().unwrap();
 
         match dir {
             "L" => Ok(Rotation::Left(rot)),
@@ -106,18 +117,6 @@ fn part_2(rotation_iter: impl Iterator<Item = Rotation>) -> u16 {
     if dial == 0 { password + 1 } else { password }
 }
 
-fn main() {
-    let input = read_to_string("input/01.txt").unwrap();
-
-    let rotation_iter = parse_input(&input);
-    let password_1 = part_1(rotation_iter);
-    println!("Part 1: {}", password_1);
-
-    let rotation_iter = parse_input(&input);
-    let password_2 = part_2(rotation_iter);
-    println!("Part 2: {}", password_2);
-}
-
 #[cfg(test)]
 mod tests {
     use crate::*;
@@ -135,8 +134,7 @@ L82";
 
     #[test]
     fn example_part_1() {
-        let input = TEST_INPUT.to_string();
-        let rotation_iter = parse_input(&input);
+        let rotation_iter = parse_input(TEST_INPUT);
         let password = part_1(rotation_iter);
 
         assert_eq!(password, 3);
@@ -144,8 +142,7 @@ L82";
 
     #[test]
     fn example_part_2() {
-        let input = TEST_INPUT.to_string();
-        let rotation_iter = parse_input(&input);
+        let rotation_iter = parse_input(TEST_INPUT);
         let password = part_2(rotation_iter);
 
         assert_eq!(password, 6);
