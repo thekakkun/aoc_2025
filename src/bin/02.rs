@@ -6,6 +6,10 @@ fn main() {
     let ranges = parse_input(&input);
     let invalid_sum = part_1(ranges);
     println!("Part 1: {}", invalid_sum);
+
+    let ranges = parse_input(&input);
+    let invalid_sum = part_2(ranges);
+    println!("Part 2: {}", invalid_sum);
 }
 
 fn parse_input(input: &str) -> impl Iterator<Item = RangeInclusive<u64>> {
@@ -19,15 +23,37 @@ fn part_1(ranges: impl Iterator<Item = RangeInclusive<u64>>) -> u64 {
     ranges.flat_map(|range| range.filter(is_duplicated)).sum()
 }
 
+fn part_2(ranges: impl Iterator<Item = RangeInclusive<u64>>) -> u64 {
+    ranges.flat_map(|range| range.filter(is_repeated)).sum()
+}
+
 fn is_duplicated(val: &u64) -> bool {
     let val = val.to_string();
 
-    if val.len() % 2 == 1 {
+    if !val.len().is_multiple_of(2) {
         return false;
     };
 
     let (first, second) = val.split_at(val.len() / 2);
     first == second
+}
+
+fn is_repeated(val: &u64) -> bool {
+    let val = val.to_string();
+
+    let divisors = get_divisors(&val.len());
+    divisors.iter().any(|d| {
+        let binding = val.chars().collect::<Vec<_>>();
+        let mut chunks = binding.chunks(*d);
+        let first = chunks.next().unwrap();
+        chunks.all(|c| c == first)
+    })
+}
+
+fn get_divisors(val: &usize) -> Vec<usize> {
+    (1..=val.isqrt())
+        .filter(|&i| val.is_multiple_of(i))
+        .collect()
 }
 
 #[cfg(test)]
@@ -44,12 +70,11 @@ mod tests {
         assert_eq!(invalid_sum, 1227775554);
     }
 
-    // #[test]
-    // fn example_part_2() {
-    //     let input = TEST_INPUT.to_string();
-    //     let rotation_iter = parse_input(&input);
-    //     let password = part_2(rotation_iter);
-    //
-    //     assert_eq!(password, 6);
-    // }
+    #[test]
+    fn example_part_2() {
+        let ranges = parse_input(TEST_INPUT);
+        let invalid_sum = part_2(ranges);
+
+        assert_eq!(invalid_sum, 4174379265);
+    }
 }
