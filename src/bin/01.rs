@@ -2,16 +2,40 @@ use std::fs::read_to_string;
 use std::ops::AddAssign;
 use std::str::FromStr;
 
+#[derive(Debug, Clone, Copy)]
 enum Rotation {
     Left(u16),
     Right(u16),
 }
 
-impl AddAssign<Rotation> for u8 {
+impl Rotation {
+    fn amount(&self) -> u16 {
+        match self {
+            Rotation::Left(rot) => *rot,
+            Rotation::Right(rot) => *rot,
+        }
+    }
+
+    fn reduce(&mut self) -> u16 {
+        let revolutions = self.amount() / 100;
+        match self {
+            Rotation::Left(rot) => {
+                *self = Rotation::Left(*rot % 100);
+            }
+            Rotation::Right(rot) => {
+                *self = Rotation::Right(*rot % 100);
+            }
+        }
+
+        revolutions
+    }
+}
+
+impl AddAssign<Rotation> for u16 {
     fn add_assign(&mut self, rhs: Rotation) {
         *self = match rhs {
-            Rotation::Left(rot) => *self + 100 - (rot % 100) as u8,
-            Rotation::Right(rot) => *self + (rot % 100) as u8,
+            Rotation::Left(rot) => *self + 100 - (rot % 100),
+            Rotation::Right(rot) => *self + (rot % 100),
         } % 100;
     }
 }
@@ -40,6 +64,7 @@ fn parse_input(input: &str) -> impl Iterator<Item = Rotation> {
 fn part_1(rotation_iter: impl Iterator<Item = Rotation>) -> u16 {
     let mut password = 0;
     let mut dial = 50;
+
     for rotation in rotation_iter {
         dial += rotation;
 
@@ -51,12 +76,46 @@ fn part_1(rotation_iter: impl Iterator<Item = Rotation>) -> u16 {
     password
 }
 
+fn part_2(rotation_iter: impl Iterator<Item = Rotation>) -> u16 {
+    let mut password = 0;
+    let mut dial = 50;
+
+    for mut rotation in rotation_iter {
+        password += rotation.reduce();
+
+        if dial == 0 {
+            password += 1;
+        } else {
+            match rotation {
+                Rotation::Left(rot) => {
+                    if dial < rot {
+                        password += 1;
+                    }
+                }
+                Rotation::Right(rot) => {
+                    if 100 < dial + rot {
+                        password += 1;
+                    }
+                }
+            }
+        }
+
+        dial += rotation;
+    }
+
+    if dial == 0 { password + 1 } else { password }
+}
+
 fn main() {
     let input = read_to_string("input/01.txt").unwrap();
-    let rotation_iter = parse_input(&input);
 
-    let password = part_1(rotation_iter);
-    println!("Part 1: {}", password);
+    let rotation_iter = parse_input(&input);
+    let password_1 = part_1(rotation_iter);
+    println!("Part 1: {}", password_1);
+
+    let rotation_iter = parse_input(&input);
+    let password_2 = part_2(rotation_iter);
+    println!("Part 2: {}", password_2);
 }
 
 #[cfg(test)]
@@ -81,5 +140,14 @@ L82";
         let password = part_1(rotation_iter);
 
         assert_eq!(password, 3);
+    }
+
+    #[test]
+    fn example_part_2() {
+        let input = TEST_INPUT.to_string();
+        let rotation_iter = parse_input(&input);
+        let password = part_2(rotation_iter);
+
+        assert_eq!(password, 6);
     }
 }
