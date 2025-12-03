@@ -42,6 +42,7 @@ fn is_repeated(val: &u64) -> bool {
     let val = val.to_string();
 
     let divisors = get_divisors(&val.len());
+
     divisors.iter().any(|d| {
         let binding = val.chars().collect::<Vec<_>>();
         let mut chunks = binding.chunks(*d);
@@ -51,9 +52,19 @@ fn is_repeated(val: &u64) -> bool {
 }
 
 fn get_divisors(val: &usize) -> Vec<usize> {
-    (1..=val.isqrt())
-        .filter(|&i| val.is_multiple_of(i))
-        .collect()
+    match val {
+        1 => vec![],
+        2 => vec![1],
+        3 => vec![1],
+        4 => vec![1, 2],
+        5 => vec![1],
+        6 => vec![1, 2, 3],
+        7 => vec![1],
+        8 => vec![1, 2, 4],
+        9 => vec![1, 3],
+        10 => vec![1, 2, 5],
+        _ => panic!("Literally unknowable"),
+    }
 }
 
 #[cfg(test)]
